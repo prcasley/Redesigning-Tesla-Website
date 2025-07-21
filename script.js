@@ -11,11 +11,19 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCausalLoopDiagram();
     initializeStockFlowModel();
     
+    // Initialize new Operation Analysis visualizations
+    initializePowerBIDashboard();
+    initializeTQCCharts();
+    initializeDecisionTree();
+    
     // Add smooth scrolling animation
     addScrollAnimations();
     
     // Add interactive elements
     addInteractiveElements();
+    
+    // Add download buttons to all charts and diagrams
+    setTimeout(addDownloadButtons, 1000); // Delay to ensure all charts are rendered
 });
 
 // Current Process Flow Chart (Introduction Section)
@@ -38,7 +46,7 @@ function initializeCurrentProcessFlow() {
         .attr('orient', 'auto')
         .append('path')
         .attr('d', 'M0,-5L10,0L0,5')
-        .attr('fill', '#cc0000');
+        .attr('fill', '#e53e3e');
 
     // Current process nodes (linear, showing bottlenecks)
     const currentNodes = [
@@ -174,10 +182,10 @@ function drawProcessDiagram(svg, nodes, links, markerId) {
                          ${targetNode.x + targetNode.width/2} ${targetNode.y}`;
             linkGroup.append('path')
                 .attr('d', path)
-                .style('stroke', '#cc0000')
-                .style('stroke-width', 2)
+                .style('stroke', '#e53e3e')
+                .style('stroke-width', 3)
                 .style('fill', 'none')
-                .style('stroke-dasharray', '5,5')
+                .style('stroke-dasharray', '8,4')
                 .attr('marker-end', `url(#${markerId})`);
         } else {
             // Straight line
@@ -186,8 +194,8 @@ function drawProcessDiagram(svg, nodes, links, markerId) {
                 .attr('y1', sourceNode.y + sourceNode.height)
                 .attr('x2', targetNode.x + targetNode.width/2)
                 .attr('y2', targetNode.y)
-                .style('stroke', '#4a5568')
-                .style('stroke-width', 2)
+                .style('stroke', '#2d3748')
+                .style('stroke-width', 3)
                 .attr('marker-end', `url(#${markerId})`);
         }
     });
@@ -209,34 +217,55 @@ function drawProcessDiagram(svg, nodes, links, markerId) {
         .style('fill', d => {
             switch(d.type) {
                 case 'start': case 'end': return '#1a365d';
-                case 'bottleneck': return '#cc0000';
-                case 'decision': return '#dd6b20';
+                case 'bottleneck': return '#fed7d7';
+                case 'decision': return '#fffbeb';
+                case 'ai': return '#e6fffa';
+                case 'flexible': return '#ebf8ff';
+                case 'continuous': return '#faf5ff';
+                default: return '#ffffff';
+            }
+        })
+        .style('stroke', d => {
+            switch(d.type) {
+                case 'start': case 'end': return '#2c5282';
+                case 'bottleneck': return '#e53e3e';
+                case 'decision': return '#f59e0b';
                 case 'ai': return '#38a169';
                 case 'flexible': return '#3182ce';
                 case 'continuous': return '#805ad5';
-                default: return '#e2e8f0';
+                default: return '#2d3748';
             }
         })
-        .style('stroke', '#2d3748')
         .style('stroke-width', 2);
 
     nodeElements.append('text')
         .attr('x', d => d.width/2)
-        .attr('y', d => d.height/2)
+        .attr('y', d => d.height/2 - 5)
         .style('text-anchor', 'middle')
-        .style('dominant-baseline', 'middle')
-        .style('font-size', '11px')
-        .style('font-weight', '500')
-        .style('fill', d => (d.type === 'start' || d.type === 'end' || d.type === 'bottleneck') ? '#ffffff' : '#2d3748')
+        .style('dominant-baseline', 'central')
+        .style('font-size', '13px')
+        .style('font-weight', '700')
+        .style('font-family', 'Times New Roman, serif')
+        .style('fill', d => (d.type === 'start' || d.type === 'end') ? '#ffffff' : '#008080')
         .text(d => d.text)
         .each(function(d) {
             const text = d3.select(this);
             const lines = d.text.split('\n');
             text.text('');
+            
+            const lineHeight = 14;
+            const totalHeight = lines.length * lineHeight;
+            const startY = (d.height/2 - 5) - totalHeight/2 + lineHeight/2;
+            
             lines.forEach((line, i) => {
                 text.append('tspan')
                     .attr('x', d.width/2)
-                    .attr('dy', i === 0 ? '0.35em' : '1.2em')
+                    .attr('y', startY + i * lineHeight)
+                    .style('fill', d => (d.type === 'start' || d.type === 'end') ? '#ffffff' : '#008080')
+                    .style('font-family', 'Times New Roman, serif')
+                    .style('font-weight', '700')
+                    .style('text-anchor', 'middle')
+                    .style('dominant-baseline', 'central')
                     .text(line);
             });
         });
@@ -244,30 +273,30 @@ function drawProcessDiagram(svg, nodes, links, markerId) {
 
 // Cost Analysis Charts
 function initializeCostAnalysisCharts() {
-    // Cost-Benefit Analysis Chart
-    const costBenefitCtx = document.getElementById('costBenefitChart').getContext('2d');
-    
-    new Chart(costBenefitCtx, {
-        type: 'line',
+    // Cost-Benefit Analysis Chart (for Proposed Model section)
+    const costBenefitCtx = document.getElementById('costBenefitChart');
+    if (costBenefitCtx) {
+        new Chart(costBenefitCtx.getContext('2d'), {
+            type: 'line',
         data: {
             labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
             datasets: [{
                 label: 'Implementation Costs',
-                data: [-1500, -600, 0, 0, 0],
+                data: [-2100, -900, -400, -200, -100],
                 borderColor: '#cc0000',
                 backgroundColor: 'rgba(204, 0, 0, 0.1)',
                 tension: 0.4,
                 fill: false
             }, {
                 label: 'Operational Savings',
-                data: [900, 1500, 1800, 1950, 2100],
+                data: [800, 2200, 4100, 6300, 8800],
                 borderColor: '#38a169',
                 backgroundColor: 'rgba(56, 161, 105, 0.1)',
                 tension: 0.4,
                 fill: false
             }, {
-                label: 'Net Cash Flow',
-                data: [-150, 1800, 2950, 3250, 3550],
+                label: 'Net Benefit',
+                data: [-1300, 1300, 3700, 6100, 8700],
                 borderColor: '#1a365d',
                 backgroundColor: 'rgba(26, 54, 93, 0.1)',
                 tension: 0.4,
@@ -296,52 +325,155 @@ function initializeCostAnalysisCharts() {
                 }
             }
         }
-    });
+        });
+    }
 
-    // Operational Efficiency Chart
-    const efficiencyCtx = document.getElementById('efficiencyChart').getContext('2d');
-    
-    new Chart(efficiencyCtx, {
-        type: 'radar',
-        data: {
-            labels: ['Production Speed', 'Quality Control', 'Resource Utilization', 'Downtime Reduction', 'Cost Efficiency', 'Flexibility'],
-            datasets: [{
-                label: 'Current Process',
-                data: [65, 70, 60, 55, 68, 45],
-                borderColor: '#cc0000',
-                backgroundColor: 'rgba(204, 0, 0, 0.2)',
-                pointBackgroundColor: '#cc0000'
-            }, {
-                label: 'Proposed Process',
-                data: [88, 95, 85, 92, 90, 85],
-                borderColor: '#38a169',
-                backgroundColor: 'rgba(56, 161, 105, 0.2)',
-                pointBackgroundColor: '#38a169'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Operational Efficiency Comparison (%)'
-                },
-                legend: {
-                    position: 'bottom'
-                }
+    // Operational Efficiency Chart  
+    const efficiencyCtx = document.getElementById('efficiencyChart');
+    if (efficiencyCtx) {
+        new Chart(efficiencyCtx.getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: ['Production Speed', 'Quality Control', 'Resource Utilization', 'Downtime Reduction', 'Cost Efficiency', 'Flexibility'],
+                datasets: [{
+                    label: 'Current Process',
+                    data: [65, 70, 60, 55, 68, 45],
+                    borderColor: '#cc0000',
+                    backgroundColor: 'rgba(204, 0, 0, 0.2)',
+                    pointBackgroundColor: '#cc0000'
+                }, {
+                    label: 'Proposed Process',
+                    data: [88, 95, 85, 92, 90, 85],
+                    borderColor: '#38a169',
+                    backgroundColor: 'rgba(56, 161, 105, 0.2)',
+                    pointBackgroundColor: '#38a169'
+                }]
             },
-            scales: {
-                r: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        stepSize: 20
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Operational Efficiency Comparison (%)'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                        }
                     }
                 }
             }
-        }
-    });
+        });
+    }
+
+    // Cost Analysis Efficiency Chart
+    const costAnalysisEfficiencyCtx = document.getElementById('costAnalysisEfficiencyChart');
+    if (costAnalysisEfficiencyCtx) {
+        new Chart(costAnalysisEfficiencyCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Manufacturing Costs', 'Supply Chain', 'Quality Control', 'Logistics', 'R&D Investment'],
+                datasets: [{
+                    label: 'Current Costs (Millions $)',
+                    data: [3200, 1800, 450, 650, 900],
+                    backgroundColor: '#cc0000',
+                    borderColor: '#aa0000',
+                    borderWidth: 2
+                }, {
+                    label: 'Optimized Costs (Millions $)',
+                    data: [2850, 1620, 380, 580, 850],
+                    backgroundColor: '#38a169',
+                    borderColor: '#2f855a',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Cost Analysis by Category'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cost (Millions USD)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Cost Analysis Benefit Chart (for Cost Analysis section)
+    const costAnalysisBenefitCtx = document.getElementById('costAnalysisBenefitChart');
+    if (costAnalysisBenefitCtx) {
+        new Chart(costAnalysisBenefitCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                datasets: [{
+                    label: 'Total Investment',
+                    data: [2100, 900, 400, 200, 100],
+                    borderColor: '#cc0000',
+                    backgroundColor: 'rgba(204, 0, 0, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }, {
+                    label: 'Cumulative Savings',
+                    data: [800, 2200, 4100, 6300, 8800],
+                    borderColor: '#38a169',
+                    backgroundColor: 'rgba(56, 161, 105, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }, {
+                    label: 'Net Benefit',
+                    data: [-1300, 1300, 3700, 6100, 8700],
+                    borderColor: '#1a365d',
+                    backgroundColor: 'rgba(26, 54, 93, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Cost-Benefit Analysis Over 5 Years (Millions USD)'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Amount (Millions USD)'
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 // Discrete-Event Simulation Flowchart
@@ -364,7 +496,7 @@ function initializeFlowchart() {
         .attr('orient', 'auto')
         .append('path')
         .attr('d', 'M0,-5L10,0L0,5')
-        .attr('fill', '#4a5568');
+        .attr('fill', '#2d3748');
 
     // Flowchart nodes data
     const nodes = [
@@ -456,24 +588,14 @@ function initializeFlowchart() {
                     .text(line);
             });
         });
-
-    // Add diagram title at the top
-    svg.append('text')
-        .attr('x', width / 2)
-        .attr('y', 30)
-        .style('text-anchor', 'middle')
-        .style('font-size', '18px')
-        .style('font-weight', '700')
-        .style('fill', '#1a365d')
-        .text('Event Simulation Flowchart');
 }
 
 // Sales Charts (Market Penetration and Revenue Simulation)
 function initializeSalesCharts() {
     // Market Penetration Probability Chart
-    const penetrationCtx = document.getElementById('penetrationChart').getContext('2d');
-    
-    new Chart(penetrationCtx, {
+    const penetrationCtx = document.getElementById('penetrationChart');
+    if (penetrationCtx) {
+        new Chart(penetrationCtx.getContext('2d'), {
         type: 'line',
         data: {
             labels: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025', 'Q2 2025'],
@@ -524,15 +646,16 @@ function initializeSalesCharts() {
                 }
             }
         }
-    });
+        });
+    }
 
     // Revenue Simulation Chart
-    const revenueCtx = document.getElementById('revenueSimulation').getContext('2d');
-    
-    // Generate Monte Carlo simulation data
-    const simulationData = generateMonteCarloData();
-    
-    new Chart(revenueCtx, {
+    const revenueCtx = document.getElementById('revenueSimulation');
+    if (revenueCtx) {
+        // Generate Monte Carlo simulation data
+        const simulationData = generateMonteCarloData();
+        
+        new Chart(revenueCtx.getContext('2d'), {
         type: 'bar',
         data: {
             labels: ['$40B-50B', '$50B-60B', '$60B-70B', '$70B-80B', '$80B-90B', '$90B-100B'],
@@ -579,7 +702,8 @@ function initializeSalesCharts() {
                 }
             }
         }
-    });
+        });
+    }
 }
 
 // Generate Monte Carlo simulation data
@@ -697,40 +821,41 @@ function initializeCausalLoopDiagram() {
         .attr('cy', 20)
         .attr('rx', 35)
         .attr('ry', 18)
-        .style('fill', '#14b8a6')
+        .style('fill', '#f7fafc')
         .style('stroke', '#1a365d')
         .style('stroke-width', 2);
 
     causalNodeElements.append('text')
         .attr('x', 40)
-        .attr('y', 20)
+        .attr('y', 15)
         .style('text-anchor', 'middle')
-        .style('dominant-baseline', 'middle')
-        .style('font-size', '10px')
-        .style('font-weight', '500')
-        .style('fill', '#000000')
+        .style('dominant-baseline', 'central')
+        .style('font-size', '11px')
+        .style('font-weight', '700')
+        .style('font-family', 'Times New Roman, serif')
+        .style('fill', '#008080')
         .text(d => d.text)
         .each(function(d) {
             const text = d3.select(this);
             const lines = d.text.split('\n');
             text.text('');
+            
+            const lineHeight = 12;
+            const totalHeight = lines.length * lineHeight;
+            const startY = 15 - totalHeight/2 + lineHeight/2;
+            
             lines.forEach((line, i) => {
                 text.append('tspan')
                     .attr('x', 40)
-                    .attr('dy', i === 0 ? '0em' : '1em')
+                    .attr('y', startY + i * lineHeight)
+                    .style('fill', '#008080')
+                    .style('font-family', 'Times New Roman, serif')
+                    .style('font-weight', '700')
+                    .style('text-anchor', 'middle')
+                    .style('dominant-baseline', 'central')
                     .text(line);
             });
         });
-
-    // Add diagram title in the center
-    svg.append('text')
-        .attr('x', width / 2)
-        .attr('y', 30)
-        .style('text-anchor', 'middle')
-        .style('font-size', '18px')
-        .style('font-weight', '700')
-        .style('fill', '#1a365d')
-        .text('Causal Loop Diagram: Domestic Supply-Demand Dynamics');
 }
 
 // Stock and Flow Model for Foreign Sales
@@ -791,20 +916,32 @@ function initializeStockFlowModel() {
 
     stockElements.append('text')
         .attr('x', d => d.width/2)
-        .attr('y', d => d.height/2)
+        .attr('y', d => d.height/2 - 5)
         .style('text-anchor', 'middle')
-        .style('dominant-baseline', 'middle')
-        .style('font-size', '16px')
+        .style('dominant-baseline', 'central')
+        .style('font-size', '12px')
         .style('font-weight', '700')
+        .style('font-family', 'Times New Roman, serif')
+        .style('fill', '#008080')
         .text(d => d.text)
         .each(function(d) {
             const text = d3.select(this);
             const lines = d.text.split('\n');
             text.text('');
+            
+            const lineHeight = 13;
+            const totalHeight = lines.length * lineHeight;
+            const startY = (d.height/2 - 5) - totalHeight/2 + lineHeight/2;
+            
             lines.forEach((line, i) => {
                 text.append('tspan')
                     .attr('x', d.width/2)
-                    .attr('dy', i === 0 ? '0em' : '1.2em')
+                    .attr('y', startY + i * lineHeight)
+                    .style('fill', '#008080')
+                    .style('font-family', 'Times New Roman, serif')
+                    .style('font-weight', '700')
+                    .style('text-anchor', 'middle')
+                    .style('dominant-baseline', 'central')
                     .text(line);
             });
         });
@@ -847,8 +984,8 @@ function initializeStockFlowModel() {
             .attr('x', (startX + endX)/2)
             .attr('y', startY - 15)
             .style('text-anchor', 'middle')
-            .style('font-size', '14px')
-            .style('font-weight', '600')
+            .style('font-size', '9px')
+            .style('font-weight', '500')
             .style('fill', '#2d3748')
             .text(flow.text)
             .each(function() {
@@ -887,34 +1024,95 @@ function initializeStockFlowModel() {
 
     auxElements.append('text')
         .attr('x', 0)
-        .attr('y', 0)
+        .attr('y', -3)
         .style('text-anchor', 'middle')
-        .style('dominant-baseline', 'middle')
-        .style('font-size', '9px')
-        .style('font-weight', '500')
-        .style('fill', '#000000')
+        .style('dominant-baseline', 'central')
+        .style('font-size', '10px')
+        .style('font-weight', '700')
+        .style('font-family', 'Times New Roman, serif')
+        .style('fill', '#008080')
         .text(d => d.text)
         .each(function(d) {
             const text = d3.select(this);
             const lines = d.text.split('\n');
             text.text('');
+            
+            const lineHeight = 11;
+            const totalHeight = lines.length * lineHeight;
+            const startY = -3 - totalHeight/2 + lineHeight/2;
+            
             lines.forEach((line, i) => {
                 text.append('tspan')
                     .attr('x', 0)
-                    .attr('dy', i === 0 ? '0em' : '1em')
+                    .attr('y', startY + i * lineHeight)
+                    .style('fill', '#008080')
+                    .style('font-family', 'Times New Roman, serif')
+                    .style('font-weight', '700')
+                    .style('text-anchor', 'middle')
+                    .style('dominant-baseline', 'central')
                     .text(line);
             });
         });
+}
 
-    // Add diagram title in the center
-    svg.append('text')
-        .attr('x', width / 2)
-        .attr('y', 30)
-        .style('text-anchor', 'middle')
-        .style('font-size', '18px')
-        .style('font-weight', '700')
-        .style('fill', '#1a365d')
-        .text('Stock and Flow Model: International Market Operations');
+// Download Chart Function
+function downloadChart(chartId, filename) {
+    const canvas = document.getElementById(chartId);
+    if (canvas) {
+        const link = document.createElement('a');
+        link.download = filename || 'chart.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+}
+
+// Download SVG Function
+function downloadSVG(svgId, filename) {
+    const svg = document.getElementById(svgId);
+    if (svg) {
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(svg);
+        const blob = new Blob([svgString], {type: 'image/svg+xml'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = filename || 'diagram.svg';
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+}
+
+// Add Download Buttons
+function addDownloadButtons() {
+    // Chart download buttons
+    const chartContainers = document.querySelectorAll('.chart-container, .viz-container, .tqc-chart-container');
+    chartContainers.forEach(container => {
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+            const downloadBtn = document.createElement('button');
+            downloadBtn.innerHTML = '⬇️ Download';
+            downloadBtn.className = 'download-btn';
+            downloadBtn.style.cssText = 'position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: #008080; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; z-index: 10;';
+            downloadBtn.onclick = () => downloadChart(canvas.id, `${canvas.id || 'chart'}.png`);
+            container.style.position = 'relative';
+            container.appendChild(downloadBtn);
+        }
+    });
+
+    // SVG diagram download buttons
+    const svgContainers = document.querySelectorAll('.flowchart-container, .diagram-container, .tree-diagram-container');
+    svgContainers.forEach(container => {
+        const svg = container.querySelector('svg');
+        if (svg) {
+            const downloadBtn = document.createElement('button');
+            downloadBtn.innerHTML = '⬇️ Download';
+            downloadBtn.className = 'download-btn';
+            downloadBtn.style.cssText = 'position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: #008080; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; z-index: 10;';
+            downloadBtn.onclick = () => downloadSVG(svg.id, `${svg.id || 'diagram'}.svg`);
+            container.style.position = 'relative';
+            container.appendChild(downloadBtn);
+        }
+    });
 }
 
 // Add scroll animations
@@ -995,9 +1193,634 @@ function formatNumber(num) {
     return num.toString();
 }
 
+// Power BI Dashboard Initialization
+function initializePowerBIDashboard() {
+    // Revenue Projection Chart
+    const revenueProjectionCtx = document.getElementById('revenueProjectionChart');
+    if (revenueProjectionCtx) {
+        new Chart(revenueProjectionCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['2024', '2025', '2026', '2027', '2028'],
+                datasets: [{
+                    label: 'Revenue (Billions $)',
+                    data: [118.4, 145.2, 178.6, 218.3, 267.9],
+                    borderColor: '#cc0000',
+                    backgroundColor: 'rgba(204, 0, 0, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Gross Profit (Billions $)',
+                    data: [25.7, 34.0, 44.3, 56.5, 71.0],
+                    borderColor: '#38a169',
+                    backgroundColor: 'rgba(56, 161, 105, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }, {
+                    label: 'EBITDA (Billions $)',
+                    data: [19.2, 25.9, 34.1, 44.3, 57.3],
+                    borderColor: '#1a365d',
+                    backgroundColor: 'rgba(26, 54, 93, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Five-Year Financial Performance Trajectory'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Amount (Billions USD)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Manufacturing Efficiency Chart
+    const manufacturingEfficiencyCtx = document.getElementById('manufacturingEfficiencyChart');
+    if (manufacturingEfficiencyCtx) {
+        new Chart(manufacturingEfficiencyCtx.getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: ['Production Volume', 'Equipment Efficiency', 'Quality Control', 'Cycle Time', 'Cost Reduction', 'Automation Level'],
+                datasets: [{
+                    label: 'Current Performance (2023)',
+                    data: [70, 78, 85, 65, 72, 68],
+                    borderColor: '#cc0000',
+                    backgroundColor: 'rgba(204, 0, 0, 0.2)',
+                    pointBackgroundColor: '#cc0000'
+                }, {
+                    label: 'Target Performance (2028)',
+                    data: [95, 94, 98, 92, 89, 95],
+                    borderColor: '#38a169',
+                    backgroundColor: 'rgba(56, 161, 105, 0.2)',
+                    pointBackgroundColor: '#38a169'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Market Share Chart
+    const marketShareCtx = document.getElementById('marketShareChart');
+    if (marketShareCtx) {
+        new Chart(marketShareCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['2023', '2024', '2025', '2026', '2027', '2028'],
+                datasets: [{
+                    label: 'Global EV Market Share (%)',
+                    data: [17.7, 19.8, 21.4, 23.1, 24.6, 25.8],
+                    borderColor: '#cc0000',
+                    backgroundColor: 'rgba(204, 0, 0, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Premium Segment Share (%)',
+                    data: [42.3, 45.7, 48.2, 51.1, 53.8, 56.2],
+                    borderColor: '#1a365d',
+                    backgroundColor: 'rgba(26, 54, 93, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 15,
+                        max: 60,
+                        title: {
+                            display: true,
+                            text: 'Market Share (%)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Investment Allocation Chart
+    const investmentAllocationCtx = document.getElementById('investmentAllocationChart');
+    if (investmentAllocationCtx) {
+        // Register the datalabels plugin
+        Chart.register(ChartDataLabels);
+        
+        new Chart(investmentAllocationCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Manufacturing & Automation', 'R&D & Innovation', 'International Expansion', 'Infrastructure Development', 'Technology Integration', 'Working Capital'],
+                datasets: [{
+                    data: [32, 24, 18, 12, 9, 5],
+                    backgroundColor: [
+                        '#cc0000',
+                        '#38a169',
+                        '#1a365d',
+                        '#f59e0b',
+                        '#805ad5',
+                        '#2d3748'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Strategic Investment Allocation (% of $8.4B Total)'
+                    },
+                    legend: {
+                        position: 'bottom',
+                        align: 'center',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 8,
+                            usePointStyle: true,
+                            font: {
+                                size: 11
+                            }
+                        },
+                        maxWidth: 600,
+                        itemsPerRow: 3
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#008080',
+                        font: {
+                            weight: 'bold',
+                            size: 13
+                        },
+                        formatter: function(value, context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return value + '\n(' + percentage + '%)';
+                        },
+                        textAlign: 'center'
+                    }
+                },
+                layout: {
+                    padding: {
+                        bottom: 60  // Space for 2-row legend
+                    }
+                }
+            }
+        });
+    }
+}
+
+// TQC Charts Initialization
+function initializeTQCCharts() {
+    // Quality Trend Analysis Chart
+    const qualityTrendCtx = document.getElementById('qualityTrendChart');
+    if (qualityTrendCtx) {
+        new Chart(qualityTrendCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Q1 2023', 'Q2 2023', 'Q3 2023', 'Q4 2023', 'Q1 2024', 'Q2 2024'],
+                datasets: [{
+                    label: 'Defect Rate (per 1000 units)',
+                    data: [3.2, 2.8, 2.5, 2.3, 2.0, 1.8],
+                    borderColor: '#cc0000',
+                    backgroundColor: 'rgba(204, 0, 0, 0.1)',
+                    tension: 0.4,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Customer Satisfaction Score',
+                    data: [4.4, 4.5, 4.55, 4.6, 4.65, 4.7],
+                    borderColor: '#38a169',
+                    backgroundColor: 'rgba(56, 161, 105, 0.1)',
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Defect Rate'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Satisfaction Score'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        min: 4.0,
+                        max: 5.0
+                    }
+                }
+            }
+        });
+    }
+
+    // Cost of Quality Chart
+    const costOfQualityCtx = document.getElementById('costOfQualityChart');
+    if (costOfQualityCtx) {
+        new Chart(costOfQualityCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Prevention', 'Appraisal', 'Internal Failure', 'External Failure'],
+                datasets: [{
+                    label: 'Current Costs (Millions $)',
+                    data: [145, 98, 234, 167],
+                    backgroundColor: '#cc0000',
+                    borderColor: '#aa0000',
+                    borderWidth: 2
+                }, {
+                    label: 'Target Costs (Millions $)',
+                    data: [189, 127, 89, 45],
+                    backgroundColor: '#38a169',
+                    borderColor: '#2f855a',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Cost of Quality Categories'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cost (Millions USD)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // TQC Implementation Maturity Chart
+    const tqcMaturityCtx = document.getElementById('tqcMaturityChart');
+    if (tqcMaturityCtx) {
+        new Chart(tqcMaturityCtx.getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: ['Quality Planning', 'Supplier QA', 'Process Control', 'Final Validation', 'Continuous Improvement', 'Customer Experience'],
+                datasets: [{
+                    label: 'Current Maturity Level',
+                    data: [75, 82, 78, 88, 71, 79],
+                    borderColor: '#cc0000',
+                    backgroundColor: 'rgba(204, 0, 0, 0.2)',
+                    pointBackgroundColor: '#cc0000'
+                }, {
+                    label: 'Target Maturity Level',
+                    data: [92, 95, 94, 97, 89, 93],
+                    borderColor: '#38a169',
+                    backgroundColor: 'rgba(56, 161, 105, 0.2)',
+                    pointBackgroundColor: '#38a169'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Decision Tree Visualization
+function initializeDecisionTree() {
+    const svg = d3.select('#decisionTree');
+    const width = 1000;
+    const height = 600;
+    
+    svg.attr('viewBox', `0 0 ${width} ${height}`)
+       .attr('preserveAspectRatio', 'xMidYMid meet');
+
+    // Define arrow marker
+    svg.append('defs').append('marker')
+        .attr('id', 'decision-arrow')
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 8)
+        .attr('refY', 0)
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-5L10,0L0,5')
+        .attr('fill', '#2d3748');
+
+    // Decision tree nodes
+    const decisionNodes = [
+        { id: 'investment-decision', x: 100, y: 100, width: 140, height: 60, text: 'Investment\nDecision', type: 'decision' },
+        { id: 'full-impl', x: 300, y: 50, width: 120, height: 50, text: 'Full\nImplementation', type: 'alternative' },
+        { id: 'phased-impl', x: 300, y: 120, width: 120, height: 50, text: 'Phased\nImplementation', type: 'alternative' },
+        { id: 'minimal-impl', x: 300, y: 190, width: 120, height: 50, text: 'Minimal\nInvestment', type: 'alternative' },
+        { id: 'status-quo', x: 300, y: 260, width: 120, height: 50, text: 'Status Quo\nMaintenance', type: 'alternative' },
+        
+        // Full Implementation outcomes
+        { id: 'full-high', x: 500, y: 20, width: 100, height: 40, text: 'High Success\n$8.9B NPV', type: 'outcome-success' },
+        { id: 'full-mod', x: 500, y: 70, width: 100, height: 40, text: 'Moderate\n$4.7B NPV', type: 'outcome-moderate' },
+        { id: 'full-low', x: 500, y: 120, width: 100, height: 40, text: 'Challenge\n$1.2B NPV', type: 'outcome-challenge' },
+        
+        // Phased Implementation outcomes
+        { id: 'phased-high', x: 500, y: 170, width: 100, height: 40, text: 'High Success\n$4.8B NPV', type: 'outcome-success' },
+        { id: 'phased-mod', x: 500, y: 220, width: 100, height: 40, text: 'Moderate\n$2.9B NPV', type: 'outcome-moderate' },
+        
+        // Expected values
+        { id: 'full-ev', x: 700, y: 50, width: 120, height: 50, text: 'Expected Value:\n$4.1B', type: 'expected-value' },
+        { id: 'phased-ev', x: 700, y: 195, width: 120, height: 50, text: 'Expected Value:\n$2.7B', type: 'expected-value' },
+        { id: 'minimal-ev', x: 500, y: 290, width: 120, height: 50, text: 'Expected Value:\n$1.2B', type: 'expected-value' },
+        { id: 'status-ev', x: 500, y: 350, width: 120, height: 50, text: 'Expected Value:\n-$1.4B', type: 'expected-negative' }
+    ];
+
+    // Decision tree links
+    const decisionLinks = [
+        // Main decision branches
+        { source: 'investment-decision', target: 'full-impl', probability: '' },
+        { source: 'investment-decision', target: 'phased-impl', probability: '' },
+        { source: 'investment-decision', target: 'minimal-impl', probability: '' },
+        { source: 'investment-decision', target: 'status-quo', probability: '' },
+        
+        // Full implementation outcomes
+        { source: 'full-impl', target: 'full-high', probability: '34.7%' },
+        { source: 'full-impl', target: 'full-mod', probability: '52.6%' },
+        { source: 'full-impl', target: 'full-low', probability: '12.7%' },
+        
+        // Phased implementation outcomes
+        { source: 'phased-impl', target: 'phased-high', probability: '41.2%' },
+        { source: 'phased-impl', target: 'phased-mod', probability: '58.8%' },
+        
+        // Expected value connections
+        { source: 'full-high', target: 'full-ev', probability: '' },
+        { source: 'full-mod', target: 'full-ev', probability: '' },
+        { source: 'full-low', target: 'full-ev', probability: '' },
+        { source: 'phased-high', target: 'phased-ev', probability: '' },
+        { source: 'phased-mod', target: 'phased-ev', probability: '' },
+        { source: 'minimal-impl', target: 'minimal-ev', probability: '' },
+        { source: 'status-quo', target: 'status-ev', probability: '' }
+    ];
+
+    // Draw decision tree links
+    const linkGroup = svg.append('g').attr('class', 'decision-links');
+    
+    decisionLinks.forEach(link => {
+        const sourceNode = decisionNodes.find(n => n.id === link.source);
+        const targetNode = decisionNodes.find(n => n.id === link.target);
+        
+        const line = linkGroup.append('line')
+            .attr('x1', sourceNode.x + sourceNode.width)
+            .attr('y1', sourceNode.y + sourceNode.height/2)
+            .attr('x2', targetNode.x)
+            .attr('y2', targetNode.y + targetNode.height/2)
+            .style('stroke', '#2d3748')
+            .style('stroke-width', 2)
+            .attr('marker-end', 'url(#decision-arrow)');
+        
+        // Add probability labels
+        if (link.probability) {
+            const midX = (sourceNode.x + sourceNode.width + targetNode.x) / 2;
+            const midY = (sourceNode.y + sourceNode.height/2 + targetNode.y + targetNode.height/2) / 2;
+            
+            linkGroup.append('text')
+                .attr('x', midX)
+                .attr('y', midY - 5)
+                .style('text-anchor', 'middle')
+                .style('font-size', '10px')
+                .style('font-weight', '600')
+                .style('fill', '#cc0000')
+                .text(link.probability);
+        }
+    });
+
+    // Draw decision tree nodes
+    const nodeGroup = svg.append('g').attr('class', 'decision-nodes');
+    
+    const nodeElements = nodeGroup.selectAll('.decision-node')
+        .data(decisionNodes)
+        .enter()
+        .append('g')
+        .attr('class', d => `decision-node ${d.type}`)
+        .attr('transform', d => `translate(${d.x}, ${d.y})`);
+
+    nodeElements.append('rect')
+        .attr('width', d => d.width)
+        .attr('height', d => d.height)
+        .attr('rx', 5)
+        .style('fill', d => {
+            switch(d.type) {
+                case 'decision': return '#f8f9fa';
+                case 'alternative': return '#f1f5f9';
+                case 'outcome-success': return '#f0fdf4';
+                case 'outcome-moderate': return '#fefce8';
+                case 'outcome-challenge': return '#fef2f2';
+                case 'expected-value': return '#eff6ff';
+                case 'expected-negative': return '#fef2f2';
+                default: return '#ffffff';
+            }
+        })
+        .style('stroke', d => {
+            switch(d.type) {
+                case 'decision': return '#64748b';
+                case 'alternative': return '#64748b';
+                case 'outcome-success': return '#64748b';
+                case 'outcome-moderate': return '#64748b';
+                case 'outcome-challenge': return '#64748b';
+                case 'expected-value': return '#64748b';
+                case 'expected-negative': return '#64748b';
+                default: return '#64748b';
+            }
+        })
+        .style('stroke-width', 2);
+
+    nodeElements.append('text')
+        .attr('x', d => d.width/2)
+        .attr('y', d => d.height/2)
+        .style('text-anchor', 'middle')
+        .style('dominant-baseline', 'central')
+        .style('font-size', '10px')
+        .style('font-weight', '600')
+        .style('font-family', 'Arial, sans-serif')
+        .style('fill', '#654321')
+        .text(d => d.text)
+        .each(function(d) {
+            const text = d3.select(this);
+            const lines = d.text.split('\n');
+            text.text('');
+            
+            const lineHeight = 12;
+            const totalHeight = lines.length * lineHeight;
+            const startY = d.height/2 - totalHeight/2 + lineHeight/2;
+            
+            lines.forEach((line, i) => {
+                text.append('tspan')
+                    .attr('x', d.width/2)
+                    .attr('y', startY + i * lineHeight)
+                    .style('fill', '#654321')
+                    .style('font-family', 'Arial, sans-serif')
+                    .style('text-anchor', 'middle')
+                    .style('dominant-baseline', 'central')
+                    .text(line);
+            });
+        });
+}
+
+// Dashboard Filter Functionality
+function initializeDashboardFilters() {
+    const categoryFilter = document.getElementById('metricCategory');
+    const timeframeFilter = document.getElementById('timeframe');
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', function() {
+            filterDashboardMetrics(this.value);
+        });
+    }
+    
+    if (timeframeFilter) {
+        timeframeFilter.addEventListener('change', function() {
+            updateTimeframeView(this.value);
+        });
+    }
+}
+
+function filterDashboardMetrics(category) {
+    console.log(`Filtering dashboard by category: ${category}`);
+    
+    // Get all visualization containers
+    const containers = document.querySelectorAll('.viz-container');
+    
+    // Show/hide containers based on category
+    containers.forEach(container => {
+        const title = container.querySelector('h4').textContent.toLowerCase();
+        
+        switch(category) {
+            case 'manufacturing':
+                container.style.display = title.includes('manufacturing') || title.includes('efficiency') ? 'flex' : 'none';
+                break;
+            case 'financial':
+                container.style.display = title.includes('revenue') || title.includes('profitability') || title.includes('investment') ? 'flex' : 'none';
+                break;
+            case 'customer':
+                container.style.display = title.includes('customer') || title.includes('satisfaction') ? 'flex' : 'none';
+                break;
+            case 'market':
+                container.style.display = title.includes('market') || title.includes('share') ? 'flex' : 'none';
+                break;
+            case 'all':
+            default:
+                container.style.display = 'flex';
+                break;
+        }
+    });
+    
+    // Update grid layout based on visible containers
+    const grid = document.querySelector('.visualization-grid');
+    const visibleContainers = document.querySelectorAll('.viz-container[style*="flex"]');
+    
+    if (visibleContainers.length <= 2) {
+        grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(400px, 1fr))';
+    } else {
+        grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    }
+}
+
+function updateTimeframeView(timeframe) {
+    console.log(`Updating timeframe view: ${timeframe}`);
+    
+    // This would typically update the data in the charts
+    // For now, we'll show a visual indicator
+    const containers = document.querySelectorAll('.viz-container h4');
+    containers.forEach(title => {
+        const originalText = title.textContent.replace(/ \([^)]*\)$/, ''); // Remove existing timeframe
+        title.textContent = `${originalText} (${timeframe.charAt(0).toUpperCase() + timeframe.slice(1)} View)`;
+    });
+    
+    // Add animation effect
+    const grid = document.querySelector('.visualization-grid');
+    grid.style.opacity = '0.7';
+    setTimeout(() => {
+        grid.style.opacity = '1';
+    }, 500);
+}
+
 // Performance monitoring
 window.addEventListener('load', function() {
     console.log('Tesla BI Website loaded successfully');
+    
+    // Initialize dashboard filters
+    initializeDashboardFilters();
     
     // Log performance metrics
     if (window.performance && window.performance.timing) {
