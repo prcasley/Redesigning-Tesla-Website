@@ -1822,9 +1822,249 @@ window.addEventListener('load', function() {
     // Initialize dashboard filters
     initializeDashboardFilters();
     
+    // Initialize Customer Relations and HR Charts
+    initializeCustomerRelationsCharts();
+    initializeHRCharts();
+    
     // Log performance metrics
     if (window.performance && window.performance.timing) {
         const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
         console.log(`Page load time: ${loadTime}ms`);
     }
 });
+
+// Customer Relations Charts
+function initializeCustomerRelationsCharts() {
+    // Customer Satisfaction Metrics Chart
+    const customerSatCtx = document.getElementById('customerSatisfactionChart');
+    if (customerSatCtx) {
+        new Chart(customerSatCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Brand Recognition', 'Net Promoter Score', 'Market Share', 'Repurchase Intent'],
+                datasets: [{
+                    data: [67, 96, 11, 92],
+                    backgroundColor: [
+                        '#FF6B6B',  // Bright Red
+                        '#4ECDC4',  // Bright Teal
+                        '#45B7D1',  // Bright Blue
+                        '#FFA726'   // Bright Orange
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Tesla Customer Satisfaction Metrics (%)',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Revenue Growth Projections Chart
+    const revenueGrowthCtx = document.getElementById('revenueGrowthChart');
+    if (revenueGrowthCtx) {
+        new Chart(revenueGrowthCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Premium Luxury', 'Mass Market', 'Commercial Fleet'],
+                datasets: [
+                    {
+                        label: 'Current Share (%)',
+                        data: [34.7, 8.3, 12.1],
+                        backgroundColor: '#FF6B6B',  // Bright Red
+                        borderColor: '#E53E3E',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Target Share (%)',
+                        data: [48.2, 23.1, 31.6],
+                        backgroundColor: '#38D9A9',  // Bright Green
+                        borderColor: '#20C997',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Market Share (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Market Segments'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Market Segment Expansion Analysis',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Human Resources Charts
+function initializeHRCharts() {
+    // Employee Satisfaction vs Industry Chart
+    const empSatCtx = document.getElementById('employeeSatisfactionChart');
+    if (empSatCtx) {
+        new Chart(empSatCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Compensation', 'Work-Life Balance', 'Innovation Culture', 'Career Growth', 'Mission Alignment', 'Management Quality'],
+                datasets: [
+                    {
+                        label: 'Tesla',
+                        data: [85, 65, 95, 80, 90, 70],
+                        borderColor: '#FF6B6B',  // Bright Red
+                        backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#FF6B6B',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Industry Average',
+                        data: [70, 75, 65, 70, 60, 75],
+                        borderColor: '#D69E2E',  // Bright Yellow/Brown
+                        backgroundColor: 'rgba(214, 158, 46, 0.2)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#D69E2E',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Tesla vs Industry Average Employee Satisfaction',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // OODA Performance Chart
+    const oodaCtx = document.getElementById('oodaPerformanceChart');
+    if (oodaCtx) {
+        new Chart(oodaCtx, {
+            type: 'line',
+            data: {
+                labels: ['Observe', 'Orient', 'Decide', 'Act', 'Feedback Loop'],
+                datasets: [
+                    {
+                        label: 'Response Time (Hours)',
+                        data: [2, 4, 1.5, 3, 0.5],
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#e74c3c',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    },
+                    {
+                        label: 'Industry Benchmark (Hours)',
+                        data: [4, 8, 6, 12, 2],
+                        borderColor: '#95a5a6',
+                        backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointBackgroundColor: '#95a5a6',
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Response Time (Hours)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'OODA Loop Phases'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'OODA Loop Decision Response Time Analysis',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
